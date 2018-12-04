@@ -116,6 +116,7 @@ td {
   There are also methods using traditional features and models, such as SIFT and HOG features and SVM[<a href="http://homes.esat.kuleuven.be/~konijn/publications/2014/paper.pdf">7</a>] or kernel learning[<a href="https://qmro.qmul.ac.uk/xmlui/bitstream/handle/123456789/10764/Gong%20-%20Free-hand%20Sketch%20Recognition%20%282015%2C%20Accepted%20version%29.pdf?sequence=3">8</a>]. The performance of tradition methods are lower than deep models, especially on large dataset such as ours.
   <br><br>
   Besides three main categories, there are also methods that try to introduce specific neural network architecture for sketches. For example, Sketchpointnet [<a href="https://ieeexplore.ieee.org/abstract/document/8451288">9</a>] is brought forward for that it captures the rotate invariance and permutation invariance.
+  <br><br>
   We note that the data is very noisy. Some of the sketches are even handwritten letters of the required doodle. It is obvious that image feature based algorithm can’t handle this case. It is possible for RNN to learn to use some memory states to model this information, but it is still hard since handwritten letter data is not so much compared to sketch ones.
 
 
