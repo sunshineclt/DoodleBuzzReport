@@ -63,15 +63,15 @@ td {
 
   Understanding sketches on mobile devices becomes increasingly important in this era.
   We worked on a Kaggle competition where Google released 50 million drawings for a deep learning network to classify.
-  To solve this problem, we tested and fine tuned 3 kinds of different networks that fits the problem domain: 2D convolutional networks, 3D convolutional networks and recurrent neural network.
+  To solve this problem, we tested and ensembled 3 kinds of different networks that fits the problem domain: 2D convolutional networks, 3D convolutional networks and recurrent neural network.
   The highest accuracy (0.900 mean average precision @ 3 score) is achieved using Mobilenet V2, a fast version of 2D convolutional network.
   We also analyzed results of all models and summarized lessons learned.
   <br><br>
 <!-- figure -->
 <h2>Teaser figure</h2>
   Since we have several models, it is hard to give a network overview.
-  Therefore, we put an iframe linked to the Doodle drawing game data page, from which the dataset of this report is drawn.
-  You could select some classes to see the sketching data obtained.
+  Therefore, we put an iframe linked to the Doodle drawing game data page.
+  You could select specific class to see how people sketch it.
   You could also try the game by clicking <a href="https://quickdraw.withgoogle.com" alt="https://quickdraw.withgoogle.com">here</a>.
   <iframe src="https://quickdraw.withgoogle.com/data"
           width="100%" height="500" frameborder="0" sandbox="allow-scripts"
@@ -91,13 +91,13 @@ td {
 <!-- Introduction -->
 <h2>Introduction / Background / Motivation</h2>
 <h4>What did you try to do? What problem did you try to solve? Articulate your objectives using absolutely no jargon.</h4>
-  With the prevalence of touchscreen devices, understanding and characterization of sketches are becoming increasingly important. However, we don’t have a good way yet to understand sketches. This is because sketches are different from photos in that sketches, in most cases, are high level abstraction of human perceptions. Sketches can present an appropriate level of semanticity that depicts objects but could also be very illustrative and subjective. They may differ between each individual and different cultures. As a result, tools used for image analysis, which are pixel perfect depictions, are not appropriate for sketch analysis. Moreover, sketching is not static pixels. Instead, it’s a dynamic process where individuals gradually draws the object based on their experience. These challenges drove the recent surge of sketch research.
+  With the prevalence of touchscreen devices, understanding and characterization of sketches are becoming increasingly important. However, we don’t have a good way yet to understand sketches. This is because sketches are different from photos in that sketches, in most cases, are high level abstraction of human perceptions. Sketches can present an appropriate level of semanticity that depicts objects but could also be very illustrative and subjective. The style of sketching may vary among different cultures and individuals. As a result, tools used for image analysis, which are pixel perfect depictions, are not appropriate for sketch analysis. Moreover, sketching is not static pixels. Instead, it’s a dynamic process where individuals gradually draws the object based on their experience. These challenges drove the recent surge of sketch research.
 <br><br>
-  One major obstacle of all sketch researches is the lack of sketch data. Luckily, google has made available 50M drawings on kaggle which encompassing 340 label categories. All the categories in the dataset contains more than 110k samples. These data are released under “Quick, Draw” which is an experimental game to educate the public in a playful way about how AI works. Users draw sketches prompted by the game to depict a certain category. A typical sketch is shown below where the left is the original data. Different strokes are shown as different colors. Each stroke is represented as a series of 2 dimensional points on a 256x256 canvas.  The picture shown on the right is a simplified version where dots roughly on a line are simplified as one single line.
+  One major obstacle of all sketch researches is the lack of sketch data. Luckily, Google has made available 50M drawings on kaggle which encompassing 340 label categories. All the categories in the dataset contain more than 110k samples. These data are collected using "Quick, Draw", an experimental game to teach the public about how AI works in a playful way. Users draw sketches of a certain category according to the game prompt. A typical sketch is shown below where the left is the original data. Different strokes are colored differently. Each stroke is represented as a series of 2 dimensional points on a 256x256 canvas.  The picture shown on the right is a simplified version where dots roughly on a line are simplified as one single line.
   <div style="text-align: center;">
   <img style="height: 200px;" alt="" src="images/doodle_visualize1.png">
   </div>
-  What we try to do is to build a deep learning model that could effectively recognize different categories of sketches. Because training data comes from the game itself, drawings can be noisy in that it’s incomplete or may not match the label or cannot be recognized. Also, as sketches are different from photos, this problem takes a full research and careful examination.
+  What we try to do is to build a deep learning model that could effectively recognize different categories of sketches. Because training data comes from the game itself, drawings can be noisy in that they could be incomplete or may not match the label or cannot be recognized.
 
 
   <h4>How is it done today, and what are the limits of current practice?</h4>
@@ -105,33 +105,29 @@ td {
   There are mainly three ways to tackle the sketch recognition.
   <br><br>
   The first one is through Convolutional Neural Network (CNN).
-  It is quite natural to just regard the sketch as a normal image and perform whatever CNN architecture upon it.
-  Though the idea is simple, researchers point out we could still incorporate some domain knowledge in sketched images, such as larger first layer filter because of the sparseness of the feature, deeper but higher dropout rate since we need more robust features that normal image [<a href="https://www.researchgate.net/profile/Timothy_Hospedales/publication/271710355_Deep_Neural_Networks_for_Sketch_Recognition/links/552a92a10cf29b22c9c11216/Deep-Neural-Networks-for-Sketch-Recognition.pdf">1</a>, <a href="https://link.springer.com/article/10.1007/s11263-016-0932-3">2</a>].
+  It is quite intuitive to just regard the sketch as a normal image and apply CNN architecture upon it.
+  Though the idea is simple, researchers point out we could still incorporate some domain knowledge in sketched images, such as larger first layer filter because of the sparseness of the feature, deeper but higher dropout rate since we need more robust features than normal image [<a href="https://www.researchgate.net/profile/Timothy_Hospedales/publication/271710355_Deep_Neural_Networks_for_Sketch_Recognition/links/552a92a10cf29b22c9c11216/Deep-Neural-Networks-for-Sketch-Recognition.pdf">1</a>, <a href="https://link.springer.com/article/10.1007/s11263-016-0932-3">2</a>].
   Because of the robustness of features, some papers also point out that we could use the features from CNN to do other kind of supervised learning, such as kNN [<a href="https://www.researchgate.net/profile/Stephane_Dupont/publication/282211796_DeepSketch_Deep_convolutional_neural_networks_for_sketch_recognition_and_similarity_search/links/5607d37408ae8e08c093649f/DeepSketch-Deep-convolutional-neural-networks-for-sketch-recognition-and-similarity-search.pdf">3</a>] or SVM [<a href="https://arxiv.org/pdf/1502.00254.pdf">4</a>].
-  Though CNN is well-developed for image recognition, its convolution structure doesn’t necessarily captures the features in sketches.
+  Though CNN is well-developed for image recognition, its convolution structure doesn’t necessarily captures the features in sketches because line information is a lot less than colorful normal images.
   <br><br>
-  The second category algorithm of sketch recognition is RNN. We could view the input data as a sequence of strokes, and preprocess the raw data to a set of straight lines, which could be represented by the start point and the end point.
+  The second category of algorithms is RNN. We could view the input data as a sequence of strokes, and preprocess the raw data to a set of straight lines, which could be represented by the start point and the end point.
   The RNN basically tries to interpret the sequence of stroke. There are also several related papers in RNN branch [<a href="https://arxiv.org/pdf/1308.0850.pdf">5</a>, <a href="https://arxiv.org/pdf/1704.03477.pdf?utm_campaign=Revue%20newsletter&utm_medium=Newsletter&utm_source=revue">6</a>]. Despite the nature of using RNN to model stroke sequences, it is well known that RNN is much less studied than CNN and it is even harder to interpret the learning results.
   <br><br>
-  There are also methods using traditional features and models, such as SIFT and HOG features and SVM[<a href="http://homes.esat.kuleuven.be/~konijn/publications/2014/paper.pdf">7</a>] or kernel learning[<a href="https://qmro.qmul.ac.uk/xmlui/bitstream/handle/123456789/10764/Gong%20-%20Free-hand%20Sketch%20Recognition%20%282015%2C%20Accepted%20version%29.pdf?sequence=3">8</a>]. The performance of tradition methods are lower than deep models, especially on large dataset such as ours.
+  There are also methods using traditional features and models, such as SIFT and HOG features and SVM[<a href="http://homes.esat.kuleuven.be/~konijn/publications/2014/paper.pdf">7</a>] or kernel learning[<a href="https://qmro.qmul.ac.uk/xmlui/bitstream/handle/123456789/10764/Gong%20-%20Free-hand%20Sketch%20Recognition%20%282015%2C%20Accepted%20version%29.pdf?sequence=3">8</a>]. The performance of above papers are lower than deep models, especially on large dataset such as ours.
   <br><br>
-  Besides three main categories, there are also methods that try to introduce specific neural network architecture for sketches. For example, Sketchpointnet [<a href="https://ieeexplore.ieee.org/abstract/document/8451288">9</a>] is brought forward for that it captures the rotate invariance and permutation invariance.
-  <br><br>
-  We note that the data is very noisy. Some of the sketches are even handwritten letters of the required doodle. It is obvious that image feature based algorithm can’t handle this case. It is possible for RNN to learn to use some memory states to model this information, but it is still hard since handwritten letter data is not so much compared to sketch ones.
+  Besides three main categories, there are also methods that try to introduce specific neural network architecture for sketches. For example, Sketchpointnet [<a href="https://ieeexplore.ieee.org/abstract/document/8451288">9</a>] is a model that captures the rotate invariance and permutation invariance of the stroke data.
 
 
 
   <h4>Who cares? If you are successful, what difference will it make?</h4>
-  Throughout human civilization, human sketches from ancient times can be found in prehistoric cave art and pictograms nowadays. With the proliferation of touchscreens, sketching has become a much easier undertaking for many – we can sketch on phones, tablets and even watches.
+  Throughout human civilization, human sketches can be found in prehistoric cave art and pictograms. With the ubiquitous of touchscreens, sketching has become a much easier undertaking for many – we can sketch on phones, tablets and even watches.
   <br><br>
-  Sketch recognition and prediction/completion closely relate to education, design and communication.
-  As for education, children will benefit from it. For example, children can self-educate by a “Sketch AI”: children sketch a single object or even a scene, the “Sketch AI” explains to them by words. On the other hand, “Sketch AI” can give a sketch to children to ask for a phrase or give the description of a scene to ask the children to sketch it out. These are meaningful for young children.
+  Sketch recognition, prediction and completion are closely related to education, design and communication.
+  For example, children can self-educate by a “Sketch AI”: “Sketch AI” can give a sketch to children to ask for a phrase or give the description of a scene to ask the children to sketch it out.
+  Smarter “Sketch AI” also makes designer or graph related worker more efficient. For example, Chemists and bioscientists may sketch chemical molecules and cell organs during research. A “Sketch AI” is able to help rearrange these sketch and make it more standard and easier to retrieve and share.
+  Also, sketch is a way to communication which is especially important when the official description of the things is off one’s mind. For example, one may want to buy a swimming goggle, but he or she doesn’t know the terminology and now can sketch it and search.
   <br><br>
-  Smarter “Sketch AI” makes designer or graph related worker more efficient. For example, Chemists sketch a lot chemical molecules and Bio-scientist draw a lot cell organs. A “Sketch AI” is able to help rearrange these sketch and make it more standard and easier to retrieve and share.  House designers draw a lot typical objects,such as a sink and a “Sketch AI” with completion function will get them rid of this repeated work, and help them to complete a sketch of sink in any possible angle and shape.
-  <br><br>
-  Also, sketch is a way to communication which is especially important when the official description of the things is off one’s mind. For example, you want to buy a swimming goggle, but you don’t know the terminology and now you can sketch it and search. Then here temporary/real-time sketch prediction/completion is useful. Like phrase completion in search engine, “Sketch AI” can do sketch prediction and even completion basing on the temporary sketch to make life easier.
-  <br><br>
-  Finally we hope that better computational understanding of sketches will lead to better computer accessibility. Virtually everybody is able to sketch a face or recognize a sketched face. Writing and reading, which today are still the standard way of communicating with computers, are much less widespread. By some definitions, functional illiteracy, even in first-world countries, is up to 20% of adults. If computers were to understand sketches as we do, sketching would give a much larger audience access to the data that has been gathered digitally over the last decades.
+  Finally we hope that better computational understanding of sketches will lead to better computer accessibility. Virtually everybody is able to sketch a face or recognize a sketched face. By some definitions, functional illiteracy, even in first-world countries, is up to 20% of adults. If computers were to understand sketches as we do, sketching would give a much larger audience access to the data that has been gathered digitally over the last decades.
 
 <br><br>
 <!-- Approach -->
@@ -140,7 +136,7 @@ td {
 
   <h4>What did you do exactly? How did you solve the problem? Why did you think it would be successful? Is anything new in your approach?</h4>
 <h5>MobileNet / ShuffleNet</h5>
-  We exam Mobilenet V2 and ShuffleNet V2’s performance in this section. Because the finished sketch is a static picture, it is intuitive to train a CNN.
+  We exam Mobilenet V2 and ShuffleNet V2’s architecture in this section.
   <br><br>
   Because firstly this “Sketch AI” is supposed to be implemented in mobile devices and secondly sketch has less complexity, in other words, less features than ordinary picture, small and computation-efficient CNN architecture network would be preferred instead of heavy ones, such as Resnet.
   <br><br>
@@ -291,7 +287,8 @@ td {
   </table>
   <br>
 <h5>RNN</h5>
-  We also tried RNN model to do the classification task. Unlike previous methods, RNN takes sequence of stroke information instead of an image. A stroke is defined as the path from finger touching to finger leaving the screen. Therefore, a stroke could be approximated as a series of pair of starting points and ending points, each representing a straight line. As a result, the input to RNN is a sequence of triples: (start point, end point, stroke ordering k) where the last component represents this line belongs to k-th stroke. The RNN architecture is illustrated in the graph below. Input firstly go through some 1D convolution layers to extract features from raw sequence, which is a common practice in such tasks. Then it goes through three layers of bidirectional LSTM. The reason why we choose bidirectional LSTM instead of vanilla LSTM is because it is beneficial to read the sequence of strokes both with forward and backward ordering. Bidirectional LSTM empirically improves the performance of sequence classification task [<a href="https://maxwell.ict.griffith.edu.au/spl/publications/papers/ieeesp97_schuster.pdf">10</a> ]. Finally, it goes through two fully connected layer to communicate information globally to decide the probability of each category. The model has 3,661,408 total parameters and 3,659,354 trainable parameters. Including the model's configuration (topology), the model's weights and the model's optimizer's state, the model has the size of 14.7 MB in HDF5 file format. We organize the details of the model in the table.
+  We note that the data is very noisy. Some of the sketches are even handwritten letters of the required doodle. It is obvious that image feature based algorithm can’t handle this case. It is possible for RNN to learn to use some memory states to model the information.
+  Therefore, we tried an RNN model to do the classification task. Unlike previous methods, RNN takes sequence of stroke information instead of an image. A stroke is defined as the path from finger touching to finger leaving the screen. Therefore, a stroke could be approximated as a series of pair of starting points and ending points, each representing a straight line. As a result, the input to RNN is a sequence of triples: (start point, end point, stroke ordering k) where the last component represents this line belongs to k-th stroke. The RNN architecture is illustrated in the graph below. Input firstly go through some 1D convolution layers to extract features from raw sequence, which is a common practice in such tasks. Then it goes through three layers of bidirectional LSTM. The reason why we choose bidirectional LSTM instead of vanilla LSTM is because it is beneficial to read the sequence of strokes both with forward and backward ordering. Bidirectional LSTM empirically improves the performance of sequence classification task [<a href="https://maxwell.ict.griffith.edu.au/spl/publications/papers/ieeesp97_schuster.pdf">10</a> ]. Finally, it goes through two fully connected layer to communicate information globally to decide the probability of each category. The model has 3,661,408 total parameters and 3,659,354 trainable parameters. Including the model's configuration (topology), the model's weights and the model's optimizer's state, the model has the size of 14.7 MB in HDF5 file format. We organize the details of the model in the table.
   <div style="text-align: center;">
     <img style="height: 500px;" alt="" src="images/rnn_architecture.png">
   </div>
@@ -487,10 +484,10 @@ td {
 
 <h2>Lessons Learned</h2>
 <h4>Experiment coordination</h4>
-  We performed a lot of experiments, but we didn’t have a plan on what the things to try. In the end, we didn’t dig very deep into a specific model. Things that could potentially improve our accuracy are varying input size, as we saw other people[<a href="https://www.kaggle.com/c/quickdraw-doodle-recognition/discussion/72697">11</a>] using a larger image size performed 3% better than our model.
+  We performed a lot of experiments, but we didn’t have a plan on what to try. In the end, we didn’t dig very deep into a specific model. Methods that could potentially improve our accuracy are varying unrecognized sample weight, and incorporate more training data.
 
   <h4>Platform stability and understanding</h4>
-  We mainly used Kaggle as main experiment platform and there is a 9 hour run time limit of all the scripts we use. We did not notice this limitation in the beginning and thought that there were some glitch in the training process, and several experiments were shutdown far before result convergence. In the end, several of our experiments did not produce valuable results because they didn’t converge.
+  We mainly used Kaggle as main experiment platform and there was a 9 hour run time limit of all the scripts we use. We did not notice this limitation in the beginning and thought that there were some glitch in the training process, and several experiments were shutdown far before result convergence. In the end, several of our experiments did not produce valuable results because of the limitation. 
 
 
   <!-- Main Results Figure -->
