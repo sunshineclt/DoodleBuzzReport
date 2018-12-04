@@ -409,23 +409,75 @@ td {
 <h5>Ensemble</h5>
   We experimented finetuned stacking, stacking freezing previous trained weights, and voting. Both stacking methods performed worse than the original model, and voting gave us the best performing results.
   <br><br>
-  Finetuning the stacked model is siginificantly slower due to large amount of parameters we needed
+  Finetuning the stacked model is siginificantly slower due to large amount of parameters.
   <br><br>
-  On the public leaderboard, our models all performed well in the top 50%, and the scores are in the table below. We also listed the samples… Different batch size comparable?
+  We first experimented stacking the three best performing models: mobilenetv2, shufflenetv2, and RNN for 15 800-step epochs of 340 sample batches. Comparing the result at 15 epochs with only stacking mobilenetv2 with RNN, The training speed was 1.5 times slower with some 5% improvement in validation accuracy. However, we decided to continue only with two model stacking so that we can reach convergence faster. The graph below is the top category accuracy graph of the first 15 epochs of the three model stacking result.
   <div style="text-align: center;">
     <img style="height: 300px;" alt="" src="images/ensemble_training1.png">
   </div>
-  Pretrained mobilenet+shufflenet+rnn for 15 epochs not frozen
+  We continued the mobilenetv2 and RNN model stacking for more epochs with the same epoch configurations. Because of the limit of Kaggle kernel, we have to split the training into 15 epoch sessions so that our work doesn’t get truncated due to 9 hour usage limit. The concatenated training history of 45 epochs of training is shown below.
   <div style="text-align: center;">
     <img style="height: 300px;" alt="" src="images/ensemble_training2.png">
   </div>
-  Pretrained cnn and rnn and frozen
+  Finally, we decided to go even more aggressive in reducing the training time and freezed all the trained weights to only train the last layer. This gave us the 3x faster training speed so that we could reach 120 epochs with three session training configuration. Below is the history of the training graph. However, there is no improvements in performance after the same training time.
   <div style="text-align: center;">
     <img style="height: 300px;" alt="" src="images/ensemble_training3.png">
   </div>
-  Pretrained cnn and rnn not frozen
+  Even though none of the three stacking models performed better than the single mobilenet v2 model, it may have introduced some model differences. During the final phase of the competition, we decided to do weighted voting on the submission files we generated. We could not train the weights, and they were purely based on heuristics. The best submission we got using [3,2,1] file weight for [mobilenet, shufflenet, lstm] was 0.898. While it is not a good weight, since it emphasize mobilenet too much.
+  <br><br>
+  We conclude our performance on the public test set into the following table
+  <br><br>
+  <div style="text-align:center;">
+  <table class="dataintable" style="width: 600px; margin: auto;">
+    <tr>
+      <td>model</td>
+      <td>epoch*step*batch</td>
+      <td>score</td>
+    </tr>
+    <tr>
+      <td>ShuffleNet V2</td>
+      <td>50*340*800</td>
+      <td>0.851</td>
+    </tr>
+    <tr>
+      <td>MobileNet V2</td>
+      <td>50*340*800</td>
+      <td><b>0.9</b></td>
+    </tr>
+    <tr>
+      <td>RNN</td>
+      <td>300*340*64</td>
+      <td>0.81</td>
+    </tr>
+    <tr>
+      <td>3 model stacking</td>
+      <td>15*340*800</td>
+      <td>0.878</td>
+    </tr>
+    <tr>
+      <td>2 model stacking</td>
+      <td>45*340*800</td>
+      <td>0.854</td>
+    </tr>
+    <tr>
+      <td>2 model freezed</td>
+      <td>40*340*800</td>
+      <td>0.854</td>
+    </tr>
+    <tr>
+      <td>2 model freezed</td>
+      <td>120*340*800</td>
+      <td>0.861</td>
+    </tr>
+    <tr>
+      <td>Voting</td>
+      <td>N/A</td>
+      <td>0.898</td>
+    </tr>
+  </table>
+  </div>
 
-<h5>Qualitative Results</h5>
+  <h5>Qualitative Results</h5>
   We use our best-public-test-set-score model -- MobileNet V2 to generate several images and predictions to give a qualitative sense of our result. The result is shown below. The word above image is the top 3 categories that our model gives.
   We could see that we did a pretty good job. We successfully classify all well-sketched pictures, such as church and pants.
   We could also see that the data is really noisy. Even human don't have a clue about what row 2 column 3 and row 3 column 2 are. However, the algorithm really did a remarkable job saying row 2 column 3 is a train or boat. It's kind of like that.
@@ -437,13 +489,13 @@ td {
 
 <h2>Lessons Learned</h2>
 <h4>Experiment coordination</h4>
-  We performed a lot of experiments, but we didn’t have a plan on what the things to try. In the end, we didn’t dig very deep into a specific model. Things that could potentially improve our accuracy are varying input size, as we saw other people[cite: ] using a larger image size performed 3% better than our model.
+  We performed a lot of experiments, but we didn’t have a plan on what the things to try. In the end, we didn’t dig very deep into a specific model. Things that could potentially improve our accuracy are varying input size, as we saw other people[<a href="https://www.kaggle.com/c/quickdraw-doodle-recognition/discussion/72697">11</a>] using a larger image size performed 3% better than our model.
 
-<h4>Platform stability and understanding</h4>
+  <h4>Platform stability and understanding</h4>
   We mainly used Kaggle as main experiment platform and there is a 9 hour run time limit of all the scripts we use. We did not notice this limitation in the beginning and thought that there were some glitch in the training process, and several experiments were shutdown far before result convergence. In the end, several of our experiments did not produce valuable results because they didn’t converge.
 
 
-<!-- Main Results Figure --> 
+  <!-- Main Results Figure -->
 <!--<div style="text-align: center;">-->
 <!--<img style="height: 300px;" alt="" src="images/results.png">-->
 <!--</div>-->
